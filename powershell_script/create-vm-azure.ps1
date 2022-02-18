@@ -23,6 +23,7 @@ try {
         --name $VmName `
         --image win2016datacenter `
         --admin-password $Env:SP_CLIENT_SECRET `
+        --public-ip-sku Standard `
     }
 catch {
     Write-Output "VM already exists"
