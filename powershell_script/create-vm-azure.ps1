@@ -1,23 +1,30 @@
-on: [workflow_dispatch]
+# Login to Azure using Service Principal credentials from Github Secrets
+Write-Output "Logging in to Azure with a service principal..."
+az login `
+    --service-principal `
+    --username $Env:SP_CLIENT_ID `
+    --password $Env:SP_CLIENT_SECRET `
+    --tenant $Env:SP_TENANT_ID
+Write-Output "Done"
 
-name: DeployAzureVM
+# Select Azure subscription
+az account set `
+    --subscription $Env:AZURE_SUBSCRIPTION_NAME
 
-jobs:
+# Create the VM configuration object
+$ResourceGroupName = "my-resource-group"
+$VmName = "Demo-vm-from-gh"
 
-  CreateAzureVM:
-    runs-on: windows-latest
-    
-    steps:
-    # Checkout code from repo
-    - name: checkout repo
-      uses: actions/checkout@v1
-
-    # Run powershell script to create VM
-    - name: RunPowershellScriptFromRepo
-      env: #Set secrets as environment variables
-        SP_CLIENT_ID: ${{ secrets.SP_CLIENT_ID }}
-        SP_CLIENT_SECRET: ${{ secrets.SP_CLIENT_SECRET }}
-        SP_TENANT_ID: ${{ secrets.SP_TENANT_ID }}
-        AZURE_SUBSCRIPTION_NAME: ${{ secrets.AZURE_SUBSCRIPTION_NAME }}
-      run: .\powershell_script\create-vm-azure.ps1
-      shell: pwsh
+# Create a VM in Azure
+Write-Output "Creating VM..."
+try {
+    az vm create  `
+        --resource-group $ResourceGroupName `
+        --name $VmName `
+        --image win2016datacenter `
+        --admin-password $Env:SP_CLIENT_SECRET `
+    }
+catch {
+    Write-Output "VM already exists"
+    }
+Write-Output "Done creating VM"
