@@ -1,36 +1,23 @@
-# This is a basic workflow to help you get started with Actions
+on: [workflow_dispatch]
 
-name: CI
+name: DeployAzureVM
 
-# Controls when the workflow will run
-on:
-  # Triggers the workflow on push or pull request events but only for the main branch
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
-
-  # Allows you to run this workflow manually from the Actions tab
-  workflow_dispatch:
-
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
-  build:
-    # The type of runner that the job will run on
-    runs-on: ubuntu-latest
 
-    # Steps represent a sequence of tasks that will be executed as part of the job
+  CreateAzureVM:
+    runs-on: windows-latest
+    
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v2
+    # Checkout code from repo
+    - name: checkout repo
+      uses: actions/checkout@v1
 
-      # Runs a single command using the runners shell
-      - name: Run a one-line script
-        run: echo Hello, world!
-
-      # Runs a set of commands using the runners shell
-      - name: Run a multi-line script
-        run: |
-          echo Add other actions to build,
-          echo test, and deploy your project.
+    # Run powershell script to create VM
+    - name: RunPowershellScriptFromRepo
+      env: #Set secrets as environment variables
+        SP_CLIENT_ID: ${{ secrets.SP_CLIENT_ID }}
+        SP_CLIENT_SECRET: ${{ secrets.SP_CLIENT_SECRET }}
+        SP_TENANT_ID: ${{ secrets.SP_TENANT_ID }}
+        AZURE_SUBSCRIPTION_NAME: ${{ secrets.AZURE_SUBSCRIPTION_NAME }}
+      run: .\powershell_script\create-vm-azure.ps1
+      shell: pwsh
